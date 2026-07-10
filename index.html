@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Orçamento Elétrico</title>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+
+  <style>
+    :root {
+      --primary: #f4b400;
+      --primary-dark: #c58c00;
+      --dark: #17202a;
+      --muted: #667085;
+      --light: #f5f7fa;
+      --white: #ffffff;
+      --danger: #d92d20;
+      --success: #027a48;
+      --border: #d0d5dd;
+      --shadow: 0 12px 35px rgba(16, 24, 40, 0.10);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--light);
+      color: var(--dark);
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .topbar {
+      background: linear-gradient(135deg, #111827, #263548);
+      color: #fff;
+      padding: 22px 5%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-logo {
+      width: min(190px, 42vw);
+      max-height: 74px;
+      height: auto;
+      display: block;
+      object-fit: contain;
+      background: #ffffff65;
+      border-radius: 6px;
+      padding: 6px;
+      box-shadow: 0 8px 22px rgba(0, 0, 0, .18);
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 1.5rem;
+    }
+
+    .brand p {
+      margin: 4px 0 0;
+      color: #d0d5dd;
+      font-size: .92rem;
+    }
+
+    .status {
+      padding: 8px 12px;
+      background: rgba(255, 255, 255, .1);
+      border-radius: 999px;
+      font-size: .85rem;
+      white-space: nowrap;
+    }
+
+    main {
+      width: min(1450px, 94%);
+      margin: 28px auto 50px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.3fr .7fr;
+      gap: 22px;
+      align-items: start;
+    }
+
+    .card {
+      background: var(--white);
+      border: 1px solid #eaecf0;
+      border-radius: 16px;
+      padding: 22px;
+      box-shadow: var(--shadow);
+      margin-bottom: 22px;
+    }
+
+    .card h2 {
+      margin: 0 0 18px;
+      font-size: 1.15rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .form-grid.three {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .field.full {
+      grid-column: 1 / -1;
+    }
+
+    label {
+      font-size: .85rem;
+      font-weight: 700;
+      color: #344054;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 11px 12px;
+      font: inherit;
+      color: var(--dark);
+      background: #fff;
+      outline: none;
+      transition: .2s ease;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(244, 180, 0, .16);
+    }
+
+    textarea {
+      min-height: 90px;
+      resize: vertical;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid #eaecf0;
+      border-radius: 12px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 850px;
+    }
+
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid #eaecf0;
+      text-align: left;
+      vertical-align: middle;
+    }
+
+    th {
+      background: #f9fafb;
+      font-size: .78rem;
+      color: #475467;
+      text-transform: uppercase;
+    }
+
+    td input, td select {
+      padding: 8px;
+      min-width: 90px;
+    }
+
+    .description-input {
+      min-width: 220px;
+    }
+
+    .row-total {
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 10px;
+      padding: 11px 15px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: .2s ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      filter: brightness(.98);
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #111827;
+    }
+
+    .btn-dark {
+      background: #17202a;
+      color: #fff;
+    }
+
+    .btn-light {
+      background: #eef2f6;
+      color: #344054;
+    }
+
+    .btn-danger {
+      background: #fee4e2;
+      color: var(--danger);
+      padding: 8px 10px;
+    }
+
+    .summary {
+      position: sticky;
+      top: 20px;
+    }
+
+    .summary-box {
+      background: linear-gradient(145deg, #17202a, #263548);
+      color: #fff;
+      border-radius: 16px;
+      padding: 22px;
+    }
+
+    .summary-line {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255,255,255,.12);
+    }
+
+    .summary-line:last-child {
+      border: 0;
+    }
+
+    .summary-line.total {
+      margin-top: 8px;
+      padding-top: 18px;
+      font-size: 1.25rem;
+      color: #ffd45b;
+      font-weight: 900;
+    }
+
+    .summary small {
+      display: block;
+      margin-top: 15px;
+      color: #d0d5dd;
+      line-height: 1.45;
+    }
+
+    .action-stack {
+      display: grid;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .action-stack button {
+      width: 100%;
+      padding: 14px;
+    }
+
+    .notice {
+      margin-top: 14px;
+      padding: 12px;
+      border-radius: 10px;
+      background: #ecfdf3;
+      color: var(--success);
+      font-size: .86rem;
+      display: none;
+    }
+
+    footer {
+      text-align: center;
+      color: var(--muted);
+      font-size: .85rem;
+      padding: 10px 20px 35px;
+    }
+
+    @media (max-width: 980px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .summary {
+        position: static;
+      }
+    }
+
+    @media (max-width: 650px) {
+      .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .form-grid,
+      .form-grid.three {
+        grid-template-columns: 1fr;
+      }
+
+      .card {
+        padding: 16px;
+      }
+
+      main {
+        width: 96%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <img class="brand-logo" src="logo-selecktron.png" alt="Selecktron" />
+      <div>
+        <h1>Orçamento Elétrico</h1>
+        <p>Crie, calcule, salve e gere propostas profissionais em PDF.</p>
+      </div>
+    </div>
+    <div class="status">Dados salvos no navegador</div>
+  </header>
+
+  <main>
+    <div class="grid">
+      <section>
+        <div class="card">
+          <h2>🏢 Dados da empresa</h2>
+          <div class="form-grid">
+            <div class="field">
+              <label for="companyName">Nome da empresa</label>
+              <input id="companyName" value="Selecktron" />
+            </div>
+            <div class="field">
+              <label for="companyDocument">CNPJ / CPF</label>
+              <input id="companyDocument" placeholder="00.000.000/0001-00" />
+            </div>
+            <div class="field">
+              <label for="companyPhone">Telefone</label>
+              <input id="companyPhone" placeholder="(81) 99999-9999" />
+            </div>
+            <div class="field">
+              <label for="companyEmail">E-mail</label>
+              <input id="companyEmail" type="email" placeholder="contato@empresa.com" />
+            </div>
+            <div class="field full">
+              <label for="companyAddress">Endereço</label>
+              <input id="companyAddress" placeholder="Rua, número, bairro, cidade - UF" />
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>👤 Dados do cliente (opcional)</h2>
+          <div class="form-grid">
+            <div class="field">
+              <label for="clientName">Nome do cliente</label>
+              <input id="clientName" placeholder="Nome ou empresa" />
+            </div>
+            <div class="field">
+              <label for="clientDocument">CPF / CNPJ</label>
+              <input id="clientDocument" placeholder="Documento" />
+            </div>
+            <div class="field">
+              <label for="clientPhone">Telefone</label>
+              <input id="clientPhone" placeholder="(81) 99999-9999" />
+            </div>
+            <div class="field">
+              <label for="clientEmail">E-mail</label>
+              <input id="clientEmail" type="email" placeholder="cliente@email.com" />
+            </div>
+            <div class="field full">
+              <label for="serviceAddress">Local do serviço</label>
+              <input id="serviceAddress" placeholder="Endereço da instalação elétrica" />
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>📄 Informações do orçamento</h2>
+          <div class="form-grid three">
+            <div class="field">
+              <label for="quoteNumber">Número</label>
+              <input id="quoteNumber" />
+            </div>
+            <div class="field">
+              <label for="issueDate">Data</label>
+              <input id="issueDate" type="date" />
+            </div>
+            <div class="field">
+              <label for="validity">Validade</label>
+              <select id="validity">
+                <option value="7">7 dias</option>
+                <option value="15" selected>15 dias</option>
+                <option value="30">30 dias</option>
+                <option value="45">45 dias</option>
+              </select>
+            </div>
+            <div class="field full">
+              <label for="serviceTitle">Título do serviço</label>
+              <input id="serviceTitle" placeholder="Ex.: Instalação elétrica residencial" />
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>🧰 Materiais e serviços</h2>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Tipo</th>
+                  <th>Descrição</th>
+                  <th>Qtd.</th>
+                  <th>Unidade</th>
+                  <th>Valor unitário</th>
+                  <th>Total</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="itemsBody"></tbody>
+            </table>
+          </div>
+
+          <div class="buttons">
+            <button class="btn-primary" id="addItemBtn">+ Adicionar item</button>
+            <button class="btn-light" id="addExampleBtn">Adicionar exemplo</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>💳 Condições e observações</h2>
+          <div class="form-grid">
+            <div class="field">
+              <label for="discount">Desconto (R$)</label>
+              <input id="discount" type="number" min="0" step="0.01" value="0" />
+            </div>
+            <div class="field">
+              <label for="extraCost">Custos adicionais (R$)</label>
+              <input id="extraCost" type="number" min="0" step="0.01" value="0" />
+            </div>
+            <div class="field">
+              <label for="paymentMethod">Forma de pagamento</label>
+              <input id="paymentMethod" placeholder="Ex.: 50% entrada e 50% na entrega" />
+            </div>
+            <div class="field">
+              <label for="executionTime">Prazo de execução</label>
+              <input id="executionTime" placeholder="Ex.: 3 dias úteis" />
+            </div>
+            <div class="field full">
+              <label for="notes">Observações</label>
+              <textarea id="notes" placeholder="Garantia, itens não inclusos, condições da instalação..."></textarea>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <aside class="summary">
+        <div class="card">
+          <h2>📊 Resumo do orçamento</h2>
+          <div class="summary-box">
+            <div class="summary-line">
+              <span>Materiais</span>
+              <strong id="materialsTotal">R$ 0,00</strong>
+            </div>
+            <div class="summary-line">
+              <span>Serviços</span>
+              <strong id="servicesTotal">R$ 0,00</strong>
+            </div>
+            <div class="summary-line">
+              <span>Subtotal</span>
+              <strong id="subtotal">R$ 0,00</strong>
+            </div>
+            <div class="summary-line">
+              <span>Desconto</span>
+              <strong id="discountTotal">- R$ 0,00</strong>
+            </div>
+            <div class="summary-line">
+              <span>Adicionais</span>
+              <strong id="extraTotal">R$ 0,00</strong>
+            </div>
+            <div class="summary-line total">
+              <span>Total</span>
+              <span id="grandTotal">R$ 0,00</span>
+            </div>
+
+            <small>
+              O PDF será gerado automaticamente com os dados da empresa,
+              cliente, itens, valores, condições e observações.
+            </small>
+          </div>
+
+          <div class="action-stack">
+            <button class="btn-primary" id="generatePdfBtn">Gerar orçamento em PDF</button>
+            <button class="btn-dark" id="saveBtn">Salvar orçamento</button>
+            <button class="btn-light" id="newBtn">Novo orçamento</button>
+          </div>
+
+          <div class="notice" id="notice">Orçamento salvo com sucesso.</div>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <footer>
+    Sistema de orçamento elétrico — funciona diretamente no navegador.
+  </footer>
+
+  <script>
+    const { jsPDF } = window.jspdf;
+    const itemsBody = document.getElementById("itemsBody");
+    const money = new Intl.NumberFormat("pt-BR", {
+      style: "currency",
+      currency: "BRL"
+    });
+
+    function numericValue(value) {
+      return Number(value) || 0;
+    }
+
+    function generateQuoteNumber() {
+      const now = new Date();
+      return `ORC-${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}-${String(Date.now()).slice(-5)}`;
+    }
+
+    function addItem(data = {}) {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>
+          <select class="item-type">
+            <option value="material" ${data.type === "material" ? "selected" : ""}>Material</option>
+            <option value="servico" ${data.type === "servico" ? "selected" : ""}>Serviço</option>
+          </select>
+        </td>
+        <td><input class="item-description description-input" value="${data.description || ""}" placeholder="Descrição do item" /></td>
+        <td><input class="item-quantity" type="number" min="0" step="0.01" value="${data.quantity ?? 1}" /></td>
+        <td>
+          <select class="item-unit">
+            ${["un", "m", "m²", "m³", "rolo", "caixa", "hora", "diária", "serviço"].map(unit =>
+              `<option value="${unit}" ${data.unit === unit ? "selected" : ""}>${unit}</option>`
+            ).join("")}
+          </select>
+        </td>
+        <td><input class="item-price" type="number" min="0" step="0.01" value="${data.price ?? 0}" /></td>
+        <td class="row-total">R$ 0,00</td>
+        <td><button class="btn-danger remove-item" title="Remover">✕</button></td>
+      `;
+
+      row.querySelectorAll("input, select").forEach(element => {
+        element.addEventListener("input", updateTotals);
+        element.addEventListener("change", updateTotals);
+      });
+
+      row.querySelector(".remove-item").addEventListener("click", () => {
+        row.remove();
+        updateTotals();
+      });
+
+      itemsBody.appendChild(row);
+      updateTotals();
+    }
+
+    function getItems() {
+      return [...itemsBody.querySelectorAll("tr")].map(row => ({
+        type: row.querySelector(".item-type").value,
+        description: row.querySelector(".item-description").value.trim(),
+        quantity: numericValue(row.querySelector(".item-quantity").value),
+        unit: row.querySelector(".item-unit").value,
+        price: numericValue(row.querySelector(".item-price").value)
+      }));
+    }
+
+    function calculateTotals() {
+      let materials = 0;
+      let services = 0;
+
+      [...itemsBody.querySelectorAll("tr")].forEach(row => {
+        const type = row.querySelector(".item-type").value;
+        const quantity = numericValue(row.querySelector(".item-quantity").value);
+        const price = numericValue(row.querySelector(".item-price").value);
+        const total = quantity * price;
+
+        row.querySelector(".row-total").textContent = money.format(total);
+
+        if (type === "material") materials += total;
+        else services += total;
+      });
+
+      const subtotal = materials + services;
+      const discount = numericValue(document.getElementById("discount").value);
+      const extra = numericValue(document.getElementById("extraCost").value);
+      const grandTotal = Math.max(0, subtotal - discount + extra);
+
+      return { materials, services, subtotal, discount, extra, grandTotal };
+    }
+
+    function updateTotals() {
+      const totals = calculateTotals();
+
+      document.getElementById("materialsTotal").textContent = money.format(totals.materials);
+      document.getElementById("servicesTotal").textContent = money.format(totals.services);
+      document.getElementById("subtotal").textContent = money.format(totals.subtotal);
+      document.getElementById("discountTotal").textContent = `- ${money.format(totals.discount)}`;
+      document.getElementById("extraTotal").textContent = money.format(totals.extra);
+      document.getElementById("grandTotal").textContent = money.format(totals.grandTotal);
+    }
+
+    function getFormData() {
+      const fieldIds = [
+        "companyName", "companyDocument", "companyPhone", "companyEmail", "companyAddress",
+        "clientName", "clientDocument", "clientPhone", "clientEmail", "serviceAddress",
+        "quoteNumber", "issueDate", "validity", "serviceTitle", "discount", "extraCost",
+        "paymentMethod", "executionTime", "notes"
+      ];
+
+      const fields = {};
+      fieldIds.forEach(id => fields[id] = document.getElementById(id).value);
+
+      return {
+        fields,
+        items: getItems()
+      };
+    }
+
+    function saveBudget() {
+      localStorage.setItem("electricalBudget", JSON.stringify(getFormData()));
+      const notice = document.getElementById("notice");
+      notice.style.display = "block";
+      setTimeout(() => notice.style.display = "none", 2500);
+    }
+
+    function loadBudget() {
+      const stored = localStorage.getItem("electricalBudget");
+      if (!stored) return false;
+
+      try {
+        const data = JSON.parse(stored);
+        if (data.fields) data.fields.companyName = normalizeCompanyName(data.fields.companyName);
+
+        Object.entries(data.fields || {}).forEach(([id, value]) => {
+          const element = document.getElementById(id);
+          if (element) element.value = value;
+        });
+
+        itemsBody.innerHTML = "";
+        (data.items || []).forEach(addItem);
+        if (!data.items || data.items.length === 0) addItem();
+        updateTotals();
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    function newBudget() {
+      const companyFields = {
+        companyName: normalizeCompanyName(document.getElementById("companyName").value),
+        companyDocument: document.getElementById("companyDocument").value,
+        companyPhone: document.getElementById("companyPhone").value,
+        companyEmail: document.getElementById("companyEmail").value,
+        companyAddress: document.getElementById("companyAddress").value
+      };
+
+      document.querySelectorAll("input, textarea").forEach(element => {
+        if (!Object.prototype.hasOwnProperty.call(companyFields, element.id)) {
+          element.value = "";
+        }
+      });
+
+      Object.entries(companyFields).forEach(([id, value]) => {
+        document.getElementById(id).value = value;
+      });
+
+      document.getElementById("discount").value = 0;
+      document.getElementById("extraCost").value = 0;
+      document.getElementById("validity").value = 15;
+      document.getElementById("issueDate").value = new Date().toISOString().split("T")[0];
+      document.getElementById("quoteNumber").value = generateQuoteNumber();
+
+      itemsBody.innerHTML = "";
+      addItem();
+      updateTotals();
+    }
+
+    function safeText(value, fallback = "-") {
+      return value && String(value).trim() ? String(value).trim() : fallback;
+    }
+
+    function savePdfFile(doc, fileName) {
+      try {
+        if (window.AndroidApp && typeof window.AndroidApp.savePdf === "function") {
+          window.AndroidApp.savePdf(doc.output("datauristring"), fileName);
+          return;
+        }
+      } catch (error) {
+        console.warn("Android PDF bridge unavailable.", error);
+      }
+
+      doc.save(fileName);
+    }
+
+    function normalizeCompanyName(value) {
+      const name = String(value || "").trim();
+      const lowerName = name.toLowerCase();
+
+      if (!name || lowerName === "mic prime elétrica" || lowerName === "mic prime eletrica" || lowerName === "selectron" || lowerName === "selecktron") {
+        return "Selecktron";
+      }
+
+      return name;
+    }
+
+    function generatePDF() {
+      const data = getFormData();
+      const totals = calculateTotals();
+      const items = data.items.filter(item => item.description || item.price > 0);
+
+      if (items.length === 0) {
+        alert("Adicione pelo menos um material ou serviço.");
+        return;
+      }
+
+      const doc = new jsPDF({ unit: "mm", format: "a4" });
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const margin = 15;
+      const logoElement = document.querySelector(".brand-logo");
+      let headerTextX = margin;
+
+      doc.setFillColor(23, 32, 42);
+      doc.rect(0, 0, pageWidth, 34, "F");
+
+      try {
+        if (logoElement && logoElement.complete && logoElement.naturalWidth > 0) {
+          const logoWidth = 46;
+          const logoHeight = Math.min(20, logoWidth * (logoElement.naturalHeight / logoElement.naturalWidth));
+          doc.addImage(logoElement, "PNG", margin, 7, logoWidth, logoHeight);
+          headerTextX = margin + logoWidth + 7;
+        }
+      } catch (error) {
+        headerTextX = margin;
+      }
+
+      doc.setTextColor(244, 180, 0);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(19);
+      doc.text(safeText(data.fields.companyName, "Empresa de Elétrica"), headerTextX, 15);
+
+      doc.setTextColor(255, 255, 255);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.text(
+        [data.fields.companyPhone, data.fields.companyEmail].filter(Boolean).join(" | ") || "Orçamento de serviços elétricos",
+        headerTextX,
+        22
+      );
+      doc.text(safeText(data.fields.companyAddress, ""), headerTextX, 28);
+
+      doc.setTextColor(23, 32, 42);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(18);
+      doc.text("ORÇAMENTO", pageWidth - margin, 15, { align: "right" });
+
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "normal");
+      doc.text(`Nº: ${safeText(data.fields.quoteNumber)}`, pageWidth - margin, 22, { align: "right" });
+
+      const issueDate = data.fields.issueDate
+        ? new Date(data.fields.issueDate + "T12:00:00").toLocaleDateString("pt-BR")
+        : "-";
+      doc.text(`Data: ${issueDate}`, pageWidth - margin, 28, { align: "right" });
+
+      let y = 44;
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(11);
+      doc.text("DADOS DO CLIENTE", margin, y);
+      doc.setDrawColor(244, 180, 0);
+      doc.line(margin, y + 2, pageWidth - margin, y + 2);
+
+      y += 8;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9.5);
+      doc.text(`Cliente: ${safeText(data.fields.clientName)}`, margin, y);
+      doc.text(`CPF/CNPJ: ${safeText(data.fields.clientDocument)}`, 110, y);
+
+      y += 6;
+      doc.text(`Telefone: ${safeText(data.fields.clientPhone)}`, margin, y);
+      doc.text(`E-mail: ${safeText(data.fields.clientEmail)}`, 110, y);
+
+      y += 6;
+      const addressLines = doc.splitTextToSize(`Local do serviço: ${safeText(data.fields.serviceAddress)}`, pageWidth - (margin * 2));
+      doc.text(addressLines, margin, y);
+      y += addressLines.length * 5 + 4;
+
+      if (data.fields.serviceTitle) {
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(11);
+        doc.text(data.fields.serviceTitle, margin, y);
+        y += 7;
+      }
+
+      const tableRows = items.map((item, index) => [
+        String(index + 1),
+        item.type === "material" ? "Material" : "Serviço",
+        item.description || "-",
+        item.quantity.toLocaleString("pt-BR"),
+        item.unit,
+        money.format(item.price),
+        money.format(item.quantity * item.price)
+      ]);
+
+      doc.autoTable({
+        startY: y,
+        head: [["#", "Tipo", "Descrição", "Qtd.", "Un.", "V. Unitário", "Total"]],
+        body: tableRows,
+        theme: "grid",
+        margin: { left: margin, right: margin },
+        styles: {
+          font: "helvetica",
+          fontSize: 8,
+          cellPadding: 2.4,
+          textColor: [23, 32, 42]
+        },
+        headStyles: {
+          fillColor: [23, 32, 42],
+          textColor: [255, 255, 255],
+          fontStyle: "bold"
+        },
+        alternateRowStyles: {
+          fillColor: [248, 250, 252]
+        },
+        columnStyles: {
+          0: { cellWidth: 8, halign: "center" },
+          1: { cellWidth: 20 },
+          2: { cellWidth: 61 },
+          3: { cellWidth: 15, halign: "right" },
+          4: { cellWidth: 14, halign: "center" },
+          5: { cellWidth: 26, halign: "right" },
+          6: { cellWidth: 27, halign: "right" }
+        }
+      });
+
+      y = doc.lastAutoTable.finalY + 7;
+
+      const summaryX = 118;
+      const lineHeight = 6;
+
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "normal");
+
+      const summaryRows = [
+        ["Materiais:", money.format(totals.materials)],
+        ["Serviços:", money.format(totals.services)],
+        ["Subtotal:", money.format(totals.subtotal)],
+        ["Desconto:", `- ${money.format(totals.discount)}`],
+        ["Adicionais:", money.format(totals.extra)]
+      ];
+
+      summaryRows.forEach(([label, value]) => {
+        doc.text(label, summaryX, y);
+        doc.text(value, pageWidth - margin, y, { align: "right" });
+        y += lineHeight;
+      });
+
+      doc.setDrawColor(244, 180, 0);
+      doc.line(summaryX, y - 2, pageWidth - margin, y - 2);
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(13);
+      doc.text("TOTAL:", summaryX, y + 4);
+      doc.text(money.format(totals.grandTotal), pageWidth - margin, y + 4, { align: "right" });
+
+      y += 15;
+
+      const remainingSpace = doc.internal.pageSize.getHeight() - y - 20;
+      if (remainingSpace < 45) {
+        doc.addPage();
+        y = 20;
+      }
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10);
+      doc.text("CONDIÇÕES", margin, y);
+      y += 6;
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+
+      const conditions = [
+        `Validade da proposta: ${safeText(data.fields.validity, "15")} dias.`,
+        `Forma de pagamento: ${safeText(data.fields.paymentMethod)}`,
+        `Prazo de execução: ${safeText(data.fields.executionTime)}`
+      ];
+
+      conditions.forEach(line => {
+        const lines = doc.splitTextToSize(line, pageWidth - (margin * 2));
+        doc.text(lines, margin, y);
+        y += lines.length * 5;
+      });
+
+      if (data.fields.notes) {
+        y += 3;
+        doc.setFont("helvetica", "bold");
+        doc.text("Observações:", margin, y);
+        y += 5;
+        doc.setFont("helvetica", "normal");
+        const noteLines = doc.splitTextToSize(data.fields.notes, pageWidth - (margin * 2));
+        doc.text(noteLines, margin, y);
+        y += noteLines.length * 5;
+      }
+
+      if (y > 250) {
+        doc.addPage();
+        y = 30;
+      } else {
+        y = Math.max(y + 18, 250);
+      }
+
+      doc.setDrawColor(150, 150, 150);
+      doc.line(margin, y, 90, y);
+      doc.line(120, y, pageWidth - margin, y);
+
+      doc.setFontSize(8);
+      doc.text(safeText(data.fields.companyName, "Responsável"), 52, y + 5, { align: "center" });
+      doc.text(safeText(data.fields.clientName, "Cliente"), 157, y + 5, { align: "center" });
+
+      const pageCount = doc.internal.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(7.5);
+        doc.setTextColor(120);
+        doc.text(
+          `Documento gerado em ${new Date().toLocaleString("pt-BR")} • Página ${i} de ${pageCount}`,
+          pageWidth / 2,
+          292,
+          { align: "center" }
+        );
+      }
+
+      const fileName = `orcamento-${safeText(data.fields.clientName, "cliente")
+        .toLowerCase()
+        .replace(/[^a-z0-9áàâãéèêíïóôõöúçñ]+/gi, "-")
+        .replace(/^-|-$/g, "")}.pdf`;
+
+      savePdfFile(doc, fileName);
+    }
+
+    document.getElementById("addItemBtn").addEventListener("click", () => addItem());
+
+    document.getElementById("addExampleBtn").addEventListener("click", () => {
+      addItem({
+        type: "material",
+        description: "Tomada de uso geral 10 A",
+        quantity: 5,
+        unit: "un",
+        price: 18.90
+      });
+
+      addItem({
+        type: "servico",
+        description: "Instalação de tomadas e acabamento",
+        quantity: 1,
+        unit: "serviço",
+        price: 250
+      });
+    });
+
+    document.getElementById("generatePdfBtn").addEventListener("click", generatePDF);
+    document.getElementById("saveBtn").addEventListener("click", saveBudget);
+    document.getElementById("newBtn").addEventListener("click", newBudget);
+    document.getElementById("discount").addEventListener("input", updateTotals);
+    document.getElementById("extraCost").addEventListener("input", updateTotals);
+
+    document.getElementById("issueDate").value = new Date().toISOString().split("T")[0];
+    document.getElementById("quoteNumber").value = generateQuoteNumber();
+
+    if (!loadBudget()) {
+      addItem();
+    }
+
+    updateTotals();
+  </script>
+</body>
+</html>

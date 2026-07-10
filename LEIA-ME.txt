@@ -1,0 +1,19 @@
+SITE DE ORÇAMENTO ELÉTRICO
+
+Como usar:
+1. Extraia a pasta.
+2. Abra o arquivo index.html no Google Chrome ou Microsoft Edge.
+3. Preencha os dados da empresa e, se quiser, os dados do cliente.
+4. Adicione materiais e serviços.
+5. Clique em "Gerar orçamento em PDF".
+
+Recursos:
+- Cálculo automático de materiais e serviços.
+- Desconto e custos adicionais.
+- Geração automática de PDF.
+- Salvamento dos dados no navegador.
+- Layout responsivo para computador e celular.
+
+Observação:
+A geração do PDF utiliza as bibliotecas jsPDF e jsPDF-AutoTable por CDN.
+Na primeira utilização, o computador precisa estar conectado à internet para carregar essas bibliotecas.
